@@ -1,6 +1,6 @@
 import csv
 import sys
-
+import numpy
 # Cosine Similarity proximity function.
 def Cosine Similarity(f)
     # Algo for Cosine Similarity
