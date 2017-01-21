@@ -7,7 +7,8 @@ import pandas as pd
 # Cosine Similarity proximity function.
 def cosine_similarity(data):
     # Algo for Cosine Similarity
-
+    dataArr = data.as_matrix()[:,:-1]
+    print dataArr
     return
 
 
@@ -24,9 +25,11 @@ def read_data_file(fileName):
 # the main function
 def analyze_data():
     # fileName = input("Enter he data set path: ")
-    fileName = '../DataSet/Iri.csv'
+    #fileName = '../DataSet/Iri.csv'
+    fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
-    print data.head()
+    #print type(data)
+    #print data.head()
 #    print "1. Cosine Similarity"
 #    print "2. "
 #    choice = input("Enter your choice:")
