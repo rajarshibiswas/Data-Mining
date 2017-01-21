@@ -1,32 +1,32 @@
+# Project 1
+#
+# Author :  Rajarshi Biswas
+#           Sayam Ganguly
 import pandas as pd
 
 # Cosine Similarity proximity function.
-#def Cosine Similarity(f)
+def cosine_similarity(data):
     # Algo for Cosine Similarity
-    #return
+
+    return
+
 
 # Read the data file.
 # fileName - The name of the file.
-def read_data_file(fileName, f):
+def read_data_file(fileName):
     try:
-        #f = open (fileName, 'rt')
         # read the file
         data = pd.read_csv(fileName)
-        #print row by row
-        #for row in reader:
-        #    print row[2,0:4]
-        print data.head()
     except IOError:
-        print "Could not open file: ", fileName
-    return
+        print ("Could not open file: "), fileName
+    return data
 
 # the main function
 def analyze_data():
-    f = []
     # fileName = input("Enter he data set path: ")
-    fileName = r'../DataSet/Iris.csv'
-    read_data_file(fileName, f)
-#
+    fileName = '../DataSet/Iri.csv'
+    data = read_data_file(fileName)
+    print data.head()
 #    print "1. Cosine Similarity"
 #    print "2. "
 #    choice = input("Enter your choice:")
@@ -37,7 +37,7 @@ def analyze_data():
         #
 #    else:
 #        print "Error in choosing"
-
+    cosine_similarity(data)
     return
 
 # call the runner function.
