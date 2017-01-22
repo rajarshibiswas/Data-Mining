@@ -7,8 +7,10 @@ import pandas as pd
 # Cosine Similarity proximity function.
 def cosine_similarity(data):
     # Algo for Cosine Similarity
-    dataArr = data.as_matrix()[:,:-1]
-    print dataArr
+    #dataArr = data.as_matrix()[:,:-1]
+    #print dataArr
+    df = data.loc[:,['sepal_length','sepal_width',' petal_length',' petal_width']]
+    print df
     return
 
 
