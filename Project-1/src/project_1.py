@@ -5,6 +5,8 @@
 import pandas as pd
 import numpy as np
 
+np.set_printoptions(precision=3)
+
 # Cosine Similarity proximity function.
 def cosine_similarity(data):
     # Algo for Cosine Similarity
@@ -25,6 +27,24 @@ def cosine_similarity(data):
     #print data.head()
     return
 
+# Compute eculidean distance
+def euclidean_distance(data, k):
+    # Get the number of rows in data
+    num_data_frame_row = data.shape[0]
+    # The result array
+    eculidean_dis = np.zeros((num_data_frame_row, num_data_frame_row))
+
+    for i in range(num_data_frame_row):
+        x = data.iloc[i].values[0:4]
+        for j in range(num_data_frame_row):
+            y = data.iloc[j].values[0:4]
+            eculidean_dis[i][j] = np.sqrt(np.sum((x - y) ** 2))
+
+    # print the result
+    for i in range(num_data_frame_row):
+        y = np.sort(eculidean_dis[i])
+        print y[1:k+1]
+    return
 
 # Read the data file.
 # fileName - The name of the file.
@@ -39,8 +59,8 @@ def read_data_file(fileName):
 # the main function
 def analyze_data():
     # fileName = input("Enter he data set path: ")
-    #fileName = '../DataSet/Iri.csv'
-    fileName = '..\DataSet\Iris.csv'
+    fileName = '../DataSet/Iris.csv'
+    #fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
     #print type(data)
     #print data.head()
@@ -54,7 +74,7 @@ def analyze_data():
         #
 #    else:
 #        print "Error in choosing"
-    cosine_similarity(data)
+    euclidean_distance(data, 4)
     return
 
 # call the runner function.
