@@ -3,14 +3,26 @@
 # Author :  Rajarshi Biswas
 #           Sayam Ganguly
 import pandas as pd
+import numpy as np
 
 # Cosine Similarity proximity function.
 def cosine_similarity(data):
     # Algo for Cosine Similarity
     #dataArr = data.as_matrix()[:,:-1]
     #print dataArr
-    df = data.loc[:,['sepal_length','sepal_width',' petal_length',' petal_width']]
-    print df
+    df = data.loc[:,['sepal_length','sepal_width',' petal_length',
+    ' petal_width']].copy()
+    dataRows = df.shape[0]
+    print df.shape[1]
+    dotMatrix = df.dot(df.T)
+    #print dotMatrix.head()
+    cos = np.zeros((dataRows,dataRows-1))
+    for i in range(dataRows-1):
+        for j in range(dataRows-2):
+            if i!=j:
+                cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+    print cos[1]
+    #print data.head()
     return
 
 
