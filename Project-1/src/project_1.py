@@ -15,7 +15,8 @@ def plot_hist(data):
                       ' petal_width']].copy()
     plt.figure()
     df[' petal_width'].hist()
-    plt.xlabel('Sepal Width')
+    df.hist()
+    plt.xlabel('Petal Width')
     plt.show()
     return
 
