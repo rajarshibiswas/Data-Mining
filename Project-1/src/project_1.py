@@ -2,10 +2,23 @@
 #
 # Author :  Rajarshi Biswas
 #           Sayam Ganguly
+
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
+import matplotlib.pyplot as plt
 np.set_printoptions(precision=3)
+
+
+def plot_hist(data):
+    df = data.loc[:, ['sepal_length', 'sepal_width', ' petal_length',
+                      ' petal_width']].copy()
+    plt.figure()
+    df[' petal_width'].hist()
+    plt.xlabel('Sepal Width')
+    plt.show()
+    return
+
 
 # Cosine Similarity proximity function.
 def cosine_similarity(data):
@@ -27,7 +40,7 @@ def cosine_similarity(data):
     #print data.head()
     return
 
-# Compute eculidean distance
+# Compute euclidean distance
 def euclidean_distance(data, k):
     # Get the number of rows in data
     num_data_frame_row = data.shape[0]
@@ -60,6 +73,8 @@ def euclidean_distance(data, k):
     #resultDF = DataFrame(data = result)
     df.index.name = "ID"
     print df
+    plot_hist(df)
+
     return
 
 
@@ -91,7 +106,8 @@ def analyze_data():
         #
 #    else:
 #        print "Error in choosing"
-    euclidean_distance(data, 4)
+    #euclidean_distance(data, 4)
+    plot_hist(data)
     return
 
 # call the runner function.
