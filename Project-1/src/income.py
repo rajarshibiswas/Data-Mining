@@ -1,12 +1,15 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from pandas import DataFrame
 
 def analyze_data():
     fileName = '../DataSet/income_tr.csv'
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
-    prepare_data(data)
-    print data.head()
+    #prepare_data(data)
+    #print data.head()
+    plot_data(data)
 
 def read_data_file(fileName):
     try:
@@ -49,5 +52,14 @@ def convert_to_class(data,colName,d):
     #data = data['education'].where(data['education'] == d.items()[0][0]).dropna()
     for item in d.items():
         data.loc[data[colName] == item[0], colName] = item[1]
+
+def plot_data(data):
+    plt.figure()
+    #plt.scatter(data['education'],data['class'])
+    data.occupation.value_counts().plot(kind='bar')
+    #df = data.loc[:, ['education', 'class']].copy()
+    #data['education'].hist()
+    plt.show()
+
 
 analyze_data()
