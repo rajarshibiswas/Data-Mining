@@ -7,8 +7,9 @@ def analyze_data():
     fileName = '../DataSet/income_tr.csv'
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
-    prepare_data(data)
-    plot_data(data)
+    data = prepare_data(data)
+    print data.head()
+    #plot_data(data)
 
 def read_data_file(fileName):
     try:
@@ -20,12 +21,13 @@ def read_data_file(fileName):
 
 
 def remove_missing_values(data):
-    data = data.loc[data['workclass'] != ' ?']
+    return data.loc[data['workclass'] != ' ?']
 
 
 def remove_ambiguous_columns(data):
     data.drop('ID', axis=1, inplace=True)
     data.drop('fnlwgt', axis=1, inplace=True)
+    data.drop('relationship', axis=1, inplace=True)
 
 
 def categorize_age(data):
@@ -42,16 +44,59 @@ def categorize_education(data):
 
 
 def categorize_workclass(data):
-    data.loc[data['workclass'].str.contains("Private"), 'workclass'] = 1
-    data.loc[data['workclass'].str.contains("Self"), 'workclass'] = 2
-    data.loc[data['workclass'].str.contains("govt"), 'workclass'] = 3
+    data.loc[data['workclass'].str.contains("Private"), 'workclass_cat'] = 1
+    data.loc[data['workclass'].str.contains("Self"), 'workclass_cat'] = 2
+    data.loc[data['workclass'].str.contains("gov"), 'workclass_cat'] = 3
+    data['workclass'] = data['workclass_cat']
+    data.drop('workclass_cat', axis=1, inplace=True)
+    data.workclass = data.workclass.astype(int)
 
+
+def categorize_occupation(data):
+    data.occupation = data.occupation.astype('category')
+    data.occupation = data.occupation.cat.codes + 1
+
+
+def categorize_marital_status(data):
+    data.loc[data['marital_status'].str.contains(" Married"), 'marital_status_cat'] = 1
+    data.loc[[not d for d in data['marital_status'].str.contains(" Married")], 'marital_status_cat'] = 2
+    data['marital_status'] = data['marital_status_cat']
+    data.drop('marital_status_cat', axis=1, inplace=True)
+
+
+def categorize_country(data):
+    data.loc[data['native_country'].str.contains(" United-States"), 'native_country_cat'] = 1
+    data.loc[[not d for d in data['native_country'].str.contains(" United-States")], 'native_country_cat'] = 2
+    data['native_country'] = data['native_country_cat']
+    data.drop('native_country_cat', axis=1, inplace=True)
+
+
+def categorize_race(data):
+    data.loc[data['race'].str.contains(" White"), 'race_cat'] = 1
+    data.loc[[not d for d in data['race'].str.contains(" White")], 'race_cat'] = 2
+    data['race'] = data['race_cat']
+    data.drop('race_cat', axis=1, inplace=True)
+
+
+def categorize_gender(data):
+    data.gender = data.gender.astype('category')
+    data.gender = data.gender.cat.codes + 1
+
+
+def categorize_capital(data):
+    data.loc[data['capital_gain']>0, 'capital_gain'] = 1
+    data.loc[data['capital_loss']>0, 'capital_loss'] = 1
+
+
+def categorize_hours(data):
+    data.loc[data['hour_per_week'] < 40, 'hour_per_week'] = 1
+    data.loc[data['hour_per_week'] == 40, 'hour_per_week'] = 2
+    data.loc[data['hour_per_week'] > 40, 'hour_per_week'] = 3
 
 
 def prepare_data(data):
-
     # Remove Missing Value
-    remove_missing_values(data)
+    data = remove_missing_values(data)
     # Remove ID and fnlwgt columns
     remove_ambiguous_columns(data)
     # Generate Age groups
@@ -60,9 +105,24 @@ def prepare_data(data):
     categorize_education(data)
     # Categorize Workclass
     categorize_workclass(data)
+    # Categorize Occupation
+    categorize_occupation(data)
+    # Categorize Marital Status
+    categorize_marital_status(data)
+    # Categorize Country
+    categorize_country(data)
+    # Categorize race
+    categorize_race(data)
+    # Categorize Gender
+    categorize_gender(data)
+    # Categorize Capital Gain/Capital Loss
+    categorize_capital(data)
+    # Categorize Hours per Week
+    categorize_hours(data)
 
+    return data
 
-
+"""
     dict_edu, dict_work_class, dict_mar_status, dict_occupation, \
     dict_relationship, dict_race, dict_gender, dict_country = prepare_dict(data)
     convert_to_class(data, 'education', dict_edu)
@@ -73,7 +133,7 @@ def prepare_data(data):
     convert_to_class(data, 'race', dict_race)
     convert_to_class(data, 'gender', dict_gender)
     convert_to_class(data, 'native_country', dict_country)
-
+"""
 
 def prepare_dict(data):
     dict_edu = make_dictionary(data, 'education')
