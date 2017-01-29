@@ -13,6 +13,7 @@ np.set_printoptions(precision=3)
 def plot_hist(data):
     df = data.loc[:, ['sepal_length', 'sepal_width', ' petal_length',' petal_width']].copy()
     plt.figure()
+    print type(df)
     df[' petal_width'].hist()
     df.hist()
     plt.xlabel('Petal Width')
@@ -40,9 +41,11 @@ def cosine_similarity(data):
     #print data.head()
     return
 
+
 def minkowski_distance(data, k, r):
+
     num_data_frame_row = data.shape[0]
-    num_data_frame_row = 5
+
     # The result array
     eculidean_dis = []
 
@@ -51,36 +54,17 @@ def minkowski_distance(data, k, r):
         temp = []
         for j in range(num_data_frame_row):
             y = data.iloc[j].values[0:4]
-            #temp.append(((np.sqrt(np.sum((x - y) ** 2)), j)))
             temp.append((np.power(np.sum(np.power(np.absolute(x - y), r)), (1.0/r)), j))
         eculidean_dis.append(temp)
 
-    df = DataFrame(columns=('1st', '1s-pre', '2nd', '2nd-pre', '3rd', '3rd-pre'))
+    prepare_output(eculidean_dis, k, '../DataSet/Minkowski.csv')
 
-    # print the result
-    for i in range(num_data_frame_row):
-        # sort the tuple based on the euclidean_distance
-        result = np.array(sorted(eculidean_dis[i], key=lambda x: x[0]))
-        # df.loc[i] = [result[0][1:k+1]]
-        l = []
-        for k in range(4):
-            l.append(result[k + 1][0])
-            l.append(result[k + 1][1])
-        df.loc[i] = [l[1], l[0], l[3], l[2], l[5], l[6]]
-        # print result[1][1]
-        # print result[1:k+1]
-    # print result
-    # resultDF = DataFrame(data = result)
-    df.index.name = "ID"
-    print df
-
-    return
 
 # Compute euclidean distance
 def euclidean_distance(data, k):
     # Get the number of rows in data
     num_data_frame_row = data.shape[0]
-    num_data_frame_row = 5
+
     # The result array
     eculidean_dis = []
     for i in range(num_data_frame_row):
@@ -90,28 +74,32 @@ def euclidean_distance(data, k):
             y = data.iloc[j].values[0:4]
             temp.append(((np.sqrt(np.sum((x - y) ** 2)),j) ) )
         eculidean_dis.append(temp)
+    fileName = '../DataSet/Iris.csv'
+    prepare_output(eculidean_dis, k, '../DataSet/Euclidean.csv')
 
-    df = DataFrame(columns=('1st', '1s-pre', '2nd', '2nd-pre', '3rd', '3rd-pre'))
+
+def prepare_output(eculidean_dis , k,filename):
+    num_data_frame_row = len(eculidean_dis)
+
+    colnames = []
+    for i in range(k - 1):
+        colnames.append(str(i + 1))
+        colnames.append(str(i + 1) + '-Prox')
+    df = DataFrame(columns=colnames)
 
     # print the result
     for i in range(num_data_frame_row):
         # sort the tuple based on the euclidean_distance
-        result =  np.array(sorted(eculidean_dis[i], key = lambda x:x[0]))
-        #df.loc[i] = [result[0][1:k+1]]
+        result = np.array(sorted(eculidean_dis[i], key=lambda x: x[0]))
         l = []
-        for k in range(4):
-            l.append(result[k+1][0])
-            l.append(result[k+1][1])
-        df.loc[i] = [l[1],l[0],l[3],l[2],l[5],l[6]]
-        #print result[1][1]
-        #print result[1:k+1]
-    #print result
-    #resultDF = DataFrame(data = result)
-    df.index.name = "ID"
-    print df
-
-
-    return
+        for j in range(k - 1):
+            l.append(result[j + 1][1])
+            l.append(result[j + 1][0])
+        df.loc[i] = l
+    df.columns.name = "Transaction ID"
+    df.index += 1
+    #print df.head()
+    df.to_csv(path_or_buf=filename)
 
 
 # Read the data file.
@@ -151,13 +139,13 @@ def analyze_data():
         #
 #    else:
 #        print "Error in choosing"
-    print data.head()
-    data = normalize_data(data)
-    euclidean_distance(data, 4)
-    #plot_hist(data)
-    minkowski_distance(data, 4, 6)
     #print data.head()
-    return
+    data = normalize_data(data)
+    euclidean_distance(data, 5)
+    #plot_hist(data)
+    minkowski_distance(data, 5, 6)
+    #print data.head()
+    #plot_hist(data)
 
 # call the runner function.
 analyze_data()

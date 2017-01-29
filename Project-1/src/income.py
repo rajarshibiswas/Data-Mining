@@ -7,8 +7,7 @@ def analyze_data():
     fileName = '../DataSet/income_tr.csv'
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
-    #prepare_data(data)
-    #print data.head()
+    prepare_data(data)
     plot_data(data)
 
 def read_data_file(fileName):
@@ -19,7 +18,13 @@ def read_data_file(fileName):
         print ("Could not open file: "), fileName
     return data
 
+def remove_missing_values(data):
+
+
 def prepare_data(data):
+
+    remove_missing_values(data)
+
     dict_edu, dict_work_class, dict_mar_status, dict_occupation, \
     dict_relationship, dict_race, dict_gender, dict_country = prepare_dict(data)
     convert_to_class(data, 'education', dict_edu)
