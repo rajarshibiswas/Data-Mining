@@ -18,12 +18,41 @@ def read_data_file(fileName):
         print ("Could not open file: "), fileName
     return data
 
+
 def remove_missing_values(data):
+    data = data.loc[data['workclass'] != ' ?']
+
+
+def remove_ambiguous_columns(data):
+    data.drop('ID', axis=1, inplace=True)
+    data.drop('fnlwgt', axis=1, inplace=True)
+
+
+def categorize_age(data):
+    bins = [0, 30, 50, 100]
+    group_names = [1, 2, 3]
+    data['age'] = pd.cut(data['age'], bins, labels=group_names)
+
+
+def categorize_education(data):
+    bins = [0, 8, 10, 12, 13, 14, 16]
+    group_names = [1, 2, 3, 4, 5, 6]
+    data['education'] = pd.cut(data['education_cat'], bins, labels=group_names)
+    data.drop('education_cat', axis=1, inplace=True)
 
 
 def prepare_data(data):
 
+    # Remove Missing Value
     remove_missing_values(data)
+    # Remove ID and fnlwgt columns
+    remove_ambiguous_columns(data)
+    # Generate Age groups
+    categorize_age(data)
+    # Categorize Education
+    categorize_education(data)
+
+
 
     dict_edu, dict_work_class, dict_mar_status, dict_occupation, \
     dict_relationship, dict_race, dict_gender, dict_country = prepare_dict(data)
