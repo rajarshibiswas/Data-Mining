@@ -41,6 +41,13 @@ def categorize_education(data):
     data.drop('education_cat', axis=1, inplace=True)
 
 
+def categorize_workclass(data):
+    data.loc[data['workclass'].str.contains("Private"), 'workclass'] = 1
+    data.loc[data['workclass'].str.contains("Self"), 'workclass'] = 2
+    data.loc[data['workclass'].str.contains("govt"), 'workclass'] = 3
+
+
+
 def prepare_data(data):
 
     # Remove Missing Value
@@ -51,6 +58,8 @@ def prepare_data(data):
     categorize_age(data)
     # Categorize Education
     categorize_education(data)
+    # Categorize Workclass
+    categorize_workclass(data)
 
 
 
