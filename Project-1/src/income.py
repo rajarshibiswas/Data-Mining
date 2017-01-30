@@ -2,14 +2,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from pandas import DataFrame
+import warnings
+
 
 def analyze_data():
+    warnings.filterwarnings("ignore")
     fileName = '../DataSet/income_tr.csv'
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
     data = prepare_data(data)
-    print data.head()
+    euclidean_distance(data, 5)
     #plot_data(data)
+
 
 def read_data_file(fileName):
     try:
@@ -28,6 +32,7 @@ def remove_ambiguous_columns(data):
     data.drop('ID', axis=1, inplace=True)
     data.drop('fnlwgt', axis=1, inplace=True)
     data.drop('relationship', axis=1, inplace=True)
+    data.drop('class', axis=1, inplace=True)
 
 
 def categorize_age(data):
@@ -94,6 +99,46 @@ def categorize_hours(data):
     data.loc[data['hour_per_week'] > 40, 'hour_per_week'] = 3
 
 
+# Compute euclidean distance
+def euclidean_distance(data, k):
+    # Get the number of rows in data
+    num_data_frame_row = data.shape[0]
+
+    # The result array
+    eculidean_dis = []
+    for i in range(num_data_frame_row):
+        x = data.iloc[i].values[0:11]
+        temp = []
+        for j in range(num_data_frame_row):
+            y = data.iloc[j].values[0:11]
+            temp.append(((np.sqrt(np.sum((x - y) ** 2)),j) ) )
+        eculidean_dis.append(temp)
+    prepare_output(eculidean_dis, k, '../DataSet/Euclidean_Income.csv')
+
+
+def prepare_output(eculidean_dis , k,filename):
+    num_data_frame_row = len(eculidean_dis)
+
+    colnames = []
+    for i in range(k - 1):
+        colnames.append(str(i + 1))
+        colnames.append(str(i + 1) + '-Prox')
+    df = DataFrame(columns=colnames)
+
+    # print the result
+    for i in range(num_data_frame_row):
+        # sort the tuple based on the euclidean_distance
+        result = np.array(sorted(eculidean_dis[i], key=lambda x: x[0]))
+        l = []
+        for j in range(k - 1):
+            l.append(result[j + 1][1])
+            l.append(result[j + 1][0])
+        df.loc[i] = l
+    df.columns.name = "Transaction ID"
+    df.index += 1
+    df.to_csv(path_or_buf=filename)
+
+
 def prepare_data(data):
     # Remove Missing Value
     data = remove_missing_values(data)
@@ -133,7 +178,7 @@ def prepare_data(data):
     convert_to_class(data, 'race', dict_race)
     convert_to_class(data, 'gender', dict_gender)
     convert_to_class(data, 'native_country', dict_country)
-"""
+
 
 def prepare_dict(data):
     dict_edu = make_dictionary(data, 'education')
@@ -155,6 +200,7 @@ def convert_to_class(data,colName,d):
     #data = data['education'].where(data['education'] == d.items()[0][0]).dropna()
     for item in d.items():
         data.loc[data[colName] == item[0], colName] = item[1]
+"""
 
 def plot_data(data):
     plt.figure()

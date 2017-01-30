@@ -74,7 +74,6 @@ def euclidean_distance(data, k):
             y = data.iloc[j].values[0:4]
             temp.append(((np.sqrt(np.sum((x - y) ** 2)),j) ) )
         eculidean_dis.append(temp)
-    fileName = '../DataSet/Iris.csv'
     prepare_output(eculidean_dis, k, '../DataSet/Euclidean.csv')
 
 
@@ -98,7 +97,6 @@ def prepare_output(eculidean_dis , k,filename):
         df.loc[i] = l
     df.columns.name = "Transaction ID"
     df.index += 1
-    #print df.head()
     df.to_csv(path_or_buf=filename)
 
 
