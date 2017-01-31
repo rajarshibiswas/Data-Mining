@@ -11,7 +11,8 @@ def analyze_data():
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
     data = prepare_data(data)
-    euclidean_distance(data, 5)
+    # euclidean_distance(data, 5)
+    cosine_similarity(data)
     #plot_data(data)
 
 
@@ -116,7 +117,7 @@ def euclidean_distance(data, k):
     prepare_output(eculidean_dis, k, '../DataSet/Euclidean_Income.csv')
 
 
-def prepare_output(eculidean_dis , k,filename):
+def prepare_output(eculidean_dis, k, filename):
     num_data_frame_row = len(eculidean_dis)
 
     colnames = []
@@ -137,6 +138,18 @@ def prepare_output(eculidean_dis , k,filename):
     df.columns.name = "Transaction ID"
     df.index += 1
     df.to_csv(path_or_buf=filename)
+
+
+# Cosine Similarity proximity function.
+def cosine_similarity(df):
+    dataRows = df.shape[0]
+    dotMatrix = df.dot(df.T)
+    cos = np.zeros((dataRows, dataRows))
+    for i in range(dataRows-1):
+        for j in range(dataRows-2):
+            if i != j and j in df.index and i in df.index:
+                cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+
 
 
 def prepare_data(data):

@@ -29,8 +29,9 @@ def cosine_similarity(data):
     df = data.loc[:,['sepal_length','sepal_width',' petal_length',
     ' petal_width']].copy()
     dataRows = df.shape[0]
-    print df.shape[1]
+
     dotMatrix = df.dot(df.T)
+    print type(dotMatrix)
     #print dotMatrix.head()
     cos = np.zeros((dataRows,dataRows-1))
     for i in range(dataRows-1):
@@ -139,9 +140,10 @@ def analyze_data():
 #        print "Error in choosing"
     #print data.head()
     data = normalize_data(data)
-    euclidean_distance(data, 5)
+    cosine_similarity(data)
+    #euclidean_distance(data, 5)
     #plot_hist(data)
-    minkowski_distance(data, 5, 6)
+    #minkowski_distance(data, 5, 6)
     #print data.head()
     #plot_hist(data)
 
