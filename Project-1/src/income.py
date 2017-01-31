@@ -7,15 +7,13 @@ import warnings
 
 def analyze_data():
     warnings.filterwarnings("ignore")
-    fileName = '../DataSet/income_tr.csv'
+    k = input("Enter the number of proximities ")
+    filename = '../DataSet/income_tr.csv'
     # fileName = '..\DataSet\Iris.csv'
-    data = read_data_file(fileName)
+    data = read_data_file(filename)
     data = prepare_data(data)
-    #euclidean_distance(data[:10], 5)
-    #cosine_similarity(data[:10], 5)
-    print data.loc[1]
-
-    print data.loc[4]
+    euclidean_distance(data, k+1)
+    cosine_similarity(data, k+1)
     #plot_data(data)
 
 
