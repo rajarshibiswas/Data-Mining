@@ -11,8 +11,11 @@ def analyze_data():
     # fileName = '..\DataSet\Iris.csv'
     data = read_data_file(fileName)
     data = prepare_data(data)
-    # euclidean_distance(data, 5)
-    cosine_similarity(data)
+    #euclidean_distance(data[:10], 5)
+    #cosine_similarity(data[:10], 5)
+    print data.loc[1]
+
+    print data.loc[4]
     #plot_data(data)
 
 
@@ -112,27 +115,28 @@ def euclidean_distance(data, k):
         temp = []
         for j in range(num_data_frame_row):
             y = data.iloc[j].values[0:11]
-            temp.append(((np.sqrt(np.sum((x - y) ** 2)),j) ) )
+            temp.append((np.sqrt(np.sum((x - y) ** 2)), j))
         eculidean_dis.append(temp)
-    prepare_output(eculidean_dis, k, '../DataSet/Euclidean_Income.csv')
+    prepare_output(eculidean_dis, k, '../DataSet/Euclidean_Income.csv', False)
 
 
-def prepare_output(eculidean_dis, k, filename):
-    num_data_frame_row = len(eculidean_dis)
-
+def prepare_output(distance_matrix, k, filename, similarity_flag):
+    num_data_frame_row = len(distance_matrix)
     colnames = []
     for i in range(k - 1):
         colnames.append(str(i + 1))
         colnames.append(str(i + 1) + '-Prox')
     df = DataFrame(columns=colnames)
-
     # print the result
     for i in range(num_data_frame_row):
         # sort the tuple based on the euclidean_distance
-        result = np.array(sorted(eculidean_dis[i], key=lambda x: x[0]))
+        if similarity_flag:
+            result = np.array(sorted(distance_matrix[i], key=lambda x: x[0], reverse=True))
+        else:
+            result = np.array(sorted(distance_matrix[i], key=lambda x: x[0]))
         l = []
         for j in range(k - 1):
-            l.append(result[j + 1][1])
+            l.append(result[j + 1][1]+1)
             l.append(result[j + 1][0])
         df.loc[i] = l
     df.columns.name = "Transaction ID"
@@ -141,14 +145,21 @@ def prepare_output(eculidean_dis, k, filename):
 
 
 # Cosine Similarity proximity function.
-def cosine_similarity(df):
+def cosine_similarity(df, k):
     dataRows = df.shape[0]
     dotMatrix = df.dot(df.T)
-    cos = np.zeros((dataRows, dataRows))
-    for i in range(dataRows-1):
-        for j in range(dataRows-2):
+    cos = []
+    for i in range(dataRows):
+        temp = []
+        for j in range(dataRows):
             if i != j and j in df.index and i in df.index:
-                cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+                # cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+                val = dotMatrix[i][j] / (np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+                temp.append((val, j))
+            else:
+                temp.append((0.0, j))
+        cos.append(temp)
+    prepare_output(cos, k, '../DataSet/Cosine_Income.csv', True)
 
 
 

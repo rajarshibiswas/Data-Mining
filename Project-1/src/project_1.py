@@ -22,25 +22,23 @@ def plot_hist(data):
 
 
 # Cosine Similarity proximity function.
-def cosine_similarity(data):
-    # Algo for Cosine Similarity
-    #dataArr = data.as_matrix()[:,:-1]
-    #print dataArr
-    df = data.loc[:,['sepal_length','sepal_width',' petal_length',
-    ' petal_width']].copy()
+def cosine_similarity(df, k):
+    df = df.loc[:,['sepal_length','sepal_width',' petal_length',
+    ' petal_width']]
     dataRows = df.shape[0]
-
     dotMatrix = df.dot(df.T)
-    print type(dotMatrix)
-    #print dotMatrix.head()
-    cos = np.zeros((dataRows,dataRows-1))
-    for i in range(dataRows-1):
-        for j in range(dataRows-2):
-            if i!=j:
-                cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
-    print cos[1]
-    #print data.head()
-    return
+    cos = []
+    for i in range(dataRows):
+        temp = []
+        for j in range(dataRows):
+            if i != j and j in df.index and i in df.index:
+                # cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+                val = dotMatrix[i][j] / (np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+                temp.append((val, j))
+            else:
+                temp.append((0.0, j))
+        cos.append(temp)
+    prepare_output(cos, k, '../DataSet/Cosine_Income.csv', True)
 
 
 def minkowski_distance(data, k, r):
@@ -74,12 +72,13 @@ def euclidean_distance(data, k):
         for j in range(num_data_frame_row):
             y = data.iloc[j].values[0:4]
             temp.append(((np.sqrt(np.sum((x - y) ** 2)),j) ) )
+        print temp
         eculidean_dis.append(temp)
     prepare_output(eculidean_dis, k, '../DataSet/Euclidean.csv')
 
 
-def prepare_output(eculidean_dis , k,filename):
-    num_data_frame_row = len(eculidean_dis)
+def prepare_output(distance_matrix , k,filename):
+    num_data_frame_row = len(distance_matrix)
 
     colnames = []
     for i in range(k - 1):
@@ -90,7 +89,7 @@ def prepare_output(eculidean_dis , k,filename):
     # print the result
     for i in range(num_data_frame_row):
         # sort the tuple based on the euclidean_distance
-        result = np.array(sorted(eculidean_dis[i], key=lambda x: x[0]))
+        result = np.array(sorted(distance_matrix[i], key=lambda x: x[0]))
         l = []
         for j in range(k - 1):
             l.append(result[j + 1][1])
@@ -115,9 +114,7 @@ def read_data_file(fileName):
 def normalize_data(data):
     data = data[['sepal_length','sepal_width', ' petal_length',' petal_width']]
     print "data max", data.min()
-    #print "data min",data.max()
     norm_data = (data - data.min()) / (data.max() - data.min())
-    #print norm_data.head()
     return norm_data
 
 # the main function
@@ -140,12 +137,8 @@ def analyze_data():
 #        print "Error in choosing"
     #print data.head()
     data = normalize_data(data)
-    cosine_similarity(data)
-    #euclidean_distance(data, 5)
-    #plot_hist(data)
-    #minkowski_distance(data, 5, 6)
-    #print data.head()
-    #plot_hist(data)
+    euclidean_distance(data, 5)
+    minkowski_distance(data, 5, 6)
 
 # call the runner function.
 analyze_data()
