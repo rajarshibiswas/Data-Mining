@@ -106,7 +106,7 @@ def euclidean_distance(data, k):
     prepare_output(eculidean_dis, k, 'Iris_Euclidean.csv')
 
 # The main function that starts the analysis
-def analyze_data(k):
+def analyze_iris_data(k):
     # Take the dataset as input
     fileName = 'Iris.csv'
     data = read_data_file(fileName)

@@ -5,7 +5,7 @@ from pandas import DataFrame
 import warnings
 
 
-def analyze_data(k):
+def analyze_income_data(k):
     warnings.filterwarnings("ignore")
     filename = 'income_tr.csv'
     data = read_data_file(filename)
@@ -185,5 +185,3 @@ def prepare_data(data):
     categorize_hours(data)
 
     return data
-
-analyze_data(k)
