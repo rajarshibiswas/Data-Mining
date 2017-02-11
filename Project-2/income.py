@@ -108,23 +108,24 @@ def categorize_hours(data):
 def KNN_from_scratch(data, test_data, n_neighbors):
     # Get the number of rows in the test data set
     test_data_row = test_data.shape[0]
-    #test_data_row =
     right_prediction = 0
     miss_prediction = 0
+    colNames = ['Transaction ID','Actual Class', 'Predicted Class', 'Posterior Probability']
+    output_frame = pd.DataFrame(columns=colNames)
     for i in range(test_data_row):
-        #neighbors = euclidean_distance(data, test_data.iloc[i], n_neighbors)
         neighbors = euclidean_distance(data, test_data.iloc[i], n_neighbors)
         result_class = []
         for j in range(len(neighbors)):
             result_class.append(data.iloc[neighbors[j][1]]['class'])
         predicted_class = get_predicted_class(result_class)
-
-        print "Row %d, Predicted class %s, Actual class %s " %(i, predicted_class, test_data.iloc[i]["class"])
+        output_frame.loc[i] = [i+1, test_data.iloc[i]["class"], predicted_class, 0.5]
+        #output_frame.append(pd.Series([i, test_data.iloc[i]["class"], predicted_class, 0.5]),ignore_index=True)
+        #print "Row %d, Predicted class %s, Actual class %s " %(i, predicted_class, test_data.iloc[i]["class"])
         if (predicted_class == test_data.iloc[i]["class"]):
             right_prediction+= 1
         else:
             miss_prediction+= 1
-
+    output_frame.to_csv(path_or_buf='K-NN_Euclidean.csv')
     error_rate = ((miss_prediction * 100) / (right_prediction + miss_prediction))
 
     print "The error rate %f percent" %error_rate
@@ -150,6 +151,26 @@ def get_predicted_class(result_class):
 #    print "The expected class:"
     return expected_class[1][0]
     #return expected_class
+
+
+# Cosine Similarity proximity function.
+def cosine_similarity(data, test_row, n_neighbors):
+    dataRows = data.shape[0]
+    #print data.iloc[1:3, 0:11]
+    x = test_row.values[0:11]
+    dotMatrix = data.iloc[:, 0:11].dot(x.T)
+    #print np.sum(np.array(data.iloc[0, 0:11]**2))
+    cos = []
+    for j in range(dataRows):
+        if j in data.index:
+            # cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
+            val = dotMatrix[j] / (np.sqrt(np.sum(np.array(x)**2)) * np.sqrt(np.sum(np.array(data.iloc[j, 0:11]**2))))
+            cos.append((val, j))
+        else:
+            cos.append((0.0, j))
+    result = (sorted(cos, key=lambda x: x[0], reverse=True))
+    return result[0:n_neighbors]
+    #prepare_output(cos, k, 'Income_Cosine.csv', True)
 
 
 # Compute euclidean distance
@@ -190,25 +211,6 @@ def prepare_output(distance_matrix, k, filename, similarity_flag):
     df.columns.name = "Transaction ID"
     df.index += 1
     df.to_csv(path_or_buf=filename)
-
-
-# Cosine Similarity proximity function.
-def cosine_similarity(df, k):
-    dataRows = df.shape[0]
-    dotMatrix = df.dot(df.T)
-    cos = []
-    for i in range(dataRows):
-        temp = []
-        for j in range(dataRows):
-            if i != j and j in df.index and i in df.index:
-                # cos[i][j] = dotMatrix[i][j]/(np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
-                val = dotMatrix[i][j] / (np.sqrt(dotMatrix[i][i]) * np.sqrt(dotMatrix[j][j]))
-                temp.append((val, j))
-            else:
-                temp.append((0.0, j))
-        cos.append(temp)
-    prepare_output(cos, k, 'Income_Cosine.csv', True)
-
 
 
 def prepare_data(data):
