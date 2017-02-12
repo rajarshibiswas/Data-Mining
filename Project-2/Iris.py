@@ -23,11 +23,19 @@ def read_data_file(fileName):
 
 # Normalize and returns the Iris dataset
 # data - The Iris dataset
-def normalize_data(data):
-    data = data[['sepal_length','sepal_width', ' petal_length',' petal_width']]
-    norm_data = (data - data.min()) / (data.max() - data.min())
+def normalize_train_data(data):
+    norm_data = data
+    norm_data = norm_data[['sepal_length','sepal_width', ' petal_length',' petal_width']]
+    norm_data = (norm_data - norm_data.min()) / (norm_data.max() - norm_data.min())
+    norm_data[' class'] = data[' class']
     return norm_data
 
+def normalize_test_data(data):
+    norm_data = data
+    norm_data = norm_data[['sepal_length','sepal_width', 'petal_length','petal_width']]
+    norm_data = (norm_data - norm_data.min()) / (norm_data.max() - norm_data.min())
+    norm_data['class'] = data['class']
+    return norm_data
 
 def minkowski_distance(data, test_row, n_neighbors, r):
     num_data_frame_row = data.shape[0]
@@ -70,8 +78,32 @@ def euclidean_distance(data, test_row, n_neighbors):
 
     #print eculidean_dis
 
+def get_predicted_class_weigh(result_class, distance):
+    c1 = ["Iris-setosa", 0]
+    c2 = ["Iris-versicolor", 0]
+    c3 = ["Iris-virginica", 0]
+
+    #print result_class
+    for i in range(len(result_class)):
+        print distance[i]
+        if (result_class[i].find("setosa") != -1):
+            c1[1] = c1[1] + (1.0 / (distance[i] * distance[i]) )
+        elif (result_class[i].find("versicolor") != -1):
+            c2[1] = c2[1] + (1.0 / (distance[i] * distance[i]) )
+        else:
+            c3[1] = c3[1] + (1.0 / (distance[i] * distance[i]) )
+    c = [c1, c2, c3]
+
+    expected_class = sorted(c, key = lambda x: x[1])
+    pos_prob = expected_class[2][1]
+
+    # send back the expected class and calculated probability.
+    result = [expected_class[2][0], pos_prob]
+    return result
+
+
 # Result class - The class of all K nearest neighbors
-def get_predicted_class(result_class):
+def get_predicted_class_majority_vote(result_class):
     c1 = ["Iris-setosa", 0]
     c2 = ["Iris-versicolor", 0]
     c3 = ["Iris-virginica", 0]
@@ -87,10 +119,11 @@ def get_predicted_class(result_class):
     c = [c1, c2, c3]
 
     expected_class = sorted(c, key = lambda x: x[1])
+    pos_prob = ( (float)(expected_class[2][1]) / len(result_class)  )
 
-#    print "The expected class:"
-    return expected_class[2][0]
-    #return expected_class
+    # send back the expected class and calculated probability.
+    result = [expected_class[2][0], pos_prob]
+    return result
 
 
 # data = Data that used to classify unseen records.
@@ -102,19 +135,34 @@ def KNN_from_scratch(data, test_data, n_neighbors):
     #test_data_row =
     right_prediction = 0
     miss_prediction = 0
+    colNames = ['Transaction ID','Actual Class', 'Predicted Class', 'Posterior Probability']
+    output_frame = pd.DataFrame(columns=colNames)
+
     for i in range(test_data_row):
         #neighbors = euclidean_distance(data, test_data.iloc[i], n_neighbors)
-        neighbors = minkowski_distance(data, test_data.iloc[i], n_neighbors, 7)
-        result_class = []
+        neighbors = minkowski_distance(data, test_data.iloc[i], n_neighbors, 5)
+        result_class = []  # Store the classes of the nearest neighbors sorted by distacne.
+        result_distance = [] # Store the correspoding distane.
         for j in range(len(neighbors)):
             result_class.append(data.iloc[neighbors[j][1]][' class'])
-        predicted_class = get_predicted_class(result_class)
+            result_distance.append(neighbors[j][0])
+        #result = get_predicted_class_majority_vote(result_class)
+        result = get_predicted_class_weigh(result_class, result_distance)
 
-        print "Row %d, Predicted class %s, Actual class %s " %(i, predicted_class, test_data.iloc[i]["class"])
+        #### Max #####
+        predicted_class = result[0]
+        output_frame.loc[i] = [i+1, test_data.iloc[i]["class"], predicted_class, result[1]]
+        #print result[1]
+        #print "Row %d, Predicted class %s, Actual class %s " %(i, predicted_class, test_data.iloc[i]["class"])
         if (predicted_class == test_data.iloc[i]["class"]):
             right_prediction+= 1
         else:
             miss_prediction+= 1
+    output_frame.index = output_frame['Transaction ID']
+    output_frame.drop('Transaction ID', axis = 1, inplace = True)
+
+    output_frame['Posterior Probability'] = (output_frame['Posterior Probability'] - output_frame['Posterior Probability'].min()) / (output_frame['Posterior Probability'].max() - output_frame['Posterior Probability'].min())
+    output_frame.to_csv(path_or_buf='IRIS_K-NN.csv')
 
     error_rate = ((miss_prediction * 100) / (right_prediction + miss_prediction))
 
@@ -184,12 +232,14 @@ def analyze_iris_data(k):
     data = read_data_file(data_fileName)
     test_data = read_data_file(test_data_filename)
 
-    k = k + 1 # as we do not consider the relationship with the same row
+    data = normalize_train_data(data)
+    test_data = normalize_test_data(test_data)
+    #test_data = normalize_data(test_data)
     # Normalize the data
     # calculate the distances.
     #minkowski_distance(data, k, 6)
 
-    KNN_from_scratch(data, test_data, n_neighbors=40)
-    KNN_using_scikit(data, test_data, n_neighbors=40)
+    KNN_from_scratch(data, test_data, n_neighbors = 40)
+    #KNN_using_scikit(data, test_data, n_neighbors=40)
 
 analyze_iris_data(4)

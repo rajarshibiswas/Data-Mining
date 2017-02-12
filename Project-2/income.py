@@ -1,22 +1,14 @@
+# Project 2
+# Income data set
+#
+# Author :  Rajarshi Biswas
+#           Sayam Ganguly
+
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-#from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier
 import warnings
-
-
-def analyze_income_data(k):
-    warnings.filterwarnings("ignore")
-    filename = 'income_tr.csv'
-    data = read_data_file(filename)
-    test_data_filename = 'income_te.csv'
-    test_data = read_data_file(test_data_filename)
-    data = prepare_data(data)
-    test_data = prepare_data(test_data)
-    KNN_from_scratch(data, test_data, n_neighbors=40)
-    #euclidean_distance(data, k+1)
-    #cosine_similarity(data, k+1)
-
 
 def read_data_file(fileName):
     try:
@@ -112,29 +104,100 @@ def KNN_from_scratch(data, test_data, n_neighbors):
     miss_prediction = 0
     colNames = ['Transaction ID','Actual Class', 'Predicted Class', 'Posterior Probability']
     output_frame = pd.DataFrame(columns=colNames)
+
     for i in range(test_data_row):
         neighbors = euclidean_distance(data, test_data.iloc[i], n_neighbors)
         result_class = []
+        result_distance = []
         for j in range(len(neighbors)):
             result_class.append(data.iloc[neighbors[j][1]]['class'])
-        predicted_class = get_predicted_class(result_class)
-        output_frame.loc[i] = [i+1, test_data.iloc[i]["class"], predicted_class, 0.5]
-        #output_frame.append(pd.Series([i, test_data.iloc[i]["class"], predicted_class, 0.5]),ignore_index=True)
-        #print "Row %d, Predicted class %s, Actual class %s " %(i, predicted_class, test_data.iloc[i]["class"])
+            result_distance.append(neighbors[j][0])
+
+        #result = get_predicted_class_weigh(result_class)
+        result = get_predicted_class_weigh(result_class, result_distance)
+
+        predicted_class = result[0]
+        output_frame.loc[i] = [i+1, test_data.iloc[i]["class"], predicted_class, result[1]]
+
         if (predicted_class == test_data.iloc[i]["class"]):
-            right_prediction+= 1
+            right_prediction += 1
         else:
-            miss_prediction+= 1
-    output_frame.to_csv(path_or_buf='K-NN_Euclidean.csv')
+            miss_prediction += 1
+    output_frame.to_csv(path_or_buf='Income_K-NN.csv')
     error_rate = ((miss_prediction * 100) / (right_prediction + miss_prediction))
 
     print "The error rate %f percent" %error_rate
 
         #print result_class
 
+def KNN_using_scikit(data, test_data, n_neighbors):
+    print "KNN_using_scikit"
+    # Create the target data
+    data.loc[data['class'].str.contains("<"), 'c'] = 1
+    data.loc[data['class'].str.contains(">"), 'c'] = 2
+    data['class'] = data['c']
+    data.drop('c', axis=1, inplace=True)
+
+    target_data = data[['class']]
+    target_data = target_data['class']
+    target_data = target_data.as_matrix()
+
+    # Create the training data
+    train_data = data.iloc[:, 0: 11]
+    train = pd.DataFrame.as_matrix(train_data)
+
+    neigh = KNeighborsClassifier(n_neighbors = n_neighbors)
+    neigh.fit(train, target_data)
+    right_prediction = 0
+    miss_prediction = 0
+
+    # number of rows in test dataset
+    test_data_row = test_data.shape[0]
+    for i in range(test_data_row):
+        result = (neigh.predict([test_data.iloc[i].values[0:11]]))
+        #print result
+        if result == 1:
+            #print "Predicted Class for row %d is Iris-setosa" %(i)
+            if (test_data.iloc[i]["class"].find("<") != -1):
+                right_prediction += 1
+            else:
+                miss_prediction += 1
+        elif result == 2:
+            #print "Expected Class for row %d is Iris-versicolor" %(i)
+            if (test_data.iloc[i]["class"].find(">") != -1):
+                right_prediction += 1
+            else:
+                miss_prediction += 1
+
+    error_rate = ((miss_prediction * 100) / (right_prediction + miss_prediction))
+    print "The error rate %f percent" %error_rate
+
+
+
 
 # Result class - The class of all K nearest neighbors
-def get_predicted_class(result_class):
+def get_predicted_class_weigh(result_class, distance):
+    c1 = [" <=50K", 0]
+    c2 = [" >50K", 0]
+
+    #print result_class
+    for i in range(len(result_class)):
+        if (result_class[i].find(" <=50K") != -1):
+            c1[1] = c1[1] + (1.0 / (distance[i] * distance[i]) )
+        elif (result_class[i].find(" >50K") != -1):
+            c2[1] = c2[1] + (1.0 / (distance[i] * distance[i]) )
+    c = [c1, c2]
+
+    expected_class = sorted(c, key = lambda x: x[1])
+    pos_prob = expected_class[1][1]
+
+    # send back the expected class and calculated probability.
+    result = [expected_class[1][0], pos_prob]
+    return result
+
+
+# Result class - The class of all K nearest neighbors
+def get_predicted_class_majority_vote(result_class):
     c1 = [" <=50K", 0]
     c2 = [" >50K", 0]
 
@@ -147,10 +210,11 @@ def get_predicted_class(result_class):
     c = [c1, c2]
 
     expected_class = sorted(c, key = lambda x: x[1])
+    pos_prob = ( (float)(expected_class[1][1]) / len(result_class)  )
 
-#    print "The expected class:"
-    return expected_class[1][0]
-    #return expected_class
+    # send back the expected class and calculated probability.
+    result = [expected_class[1][0], pos_prob]
+    return result
 
 
 # Cosine Similarity proximity function.
@@ -169,7 +233,7 @@ def cosine_similarity(data, test_row, n_neighbors):
         else:
             cos.append((0.0, j))
     result = (sorted(cos, key=lambda x: x[0], reverse=True))
-    return result[0:n_neighbors]
+    return result[0: n_neighbors]
     #prepare_output(cos, k, 'Income_Cosine.csv', True)
 
 
@@ -185,32 +249,10 @@ def euclidean_distance(data, test_row, n_neighbors):
         y = data.iloc[j].values[0:11]
         euclidean_dis.append((np.sqrt(np.sum((x - y) ** 2)), j))
     result = (sorted(euclidean_dis, key=lambda x: x[0]))
+
     return result[0:n_neighbors]
-    #prepare_output(euclidean_dis, k, 'Income_Euclidean.csv', False)
 
 
-def prepare_output(distance_matrix, k, filename, similarity_flag):
-    num_data_frame_row = len(distance_matrix)
-    colnames = []
-    for i in range(k - 1):
-        colnames.append(str(i + 1))
-        colnames.append(str(i + 1) + '-Prox')
-    df = DataFrame(columns=colnames)
-    # print the result
-    for i in range(num_data_frame_row):
-        # sort the tuple based on the euclidean_distance
-        if similarity_flag:
-            result = np.array(sorted(distance_matrix[i], key=lambda x: x[0], reverse=True))
-        else:
-            result = np.array(sorted(distance_matrix[i], key=lambda x: x[0]))
-        l = []
-        for j in range(k - 1):
-            l.append(result[j + 1][1]+1)
-            l.append(result[j + 1][0])
-        df.loc[i] = l
-    df.columns.name = "Transaction ID"
-    df.index += 1
-    df.to_csv(path_or_buf=filename)
 
 
 def prepare_data(data):
@@ -241,5 +283,18 @@ def prepare_data(data):
 
     return data
 
+def analyze_income_data():
+    warnings.filterwarnings("ignore")
+    filename = 'income_tr.csv'
+    data = read_data_file(filename)
+    test_data_filename = 'income_te.csv'
+    test_data = read_data_file(test_data_filename)
+    data = prepare_data(data)
+    test_data = prepare_data(test_data)
+    KNN_from_scratch(data, test_data, n_neighbors = 40)
+    #KNN_using_scikit(data, test_data, n_neighbors = 4)
+    #euclidean_distance(data, k+1)
+    #cosine_similarity(data, k+1)
+    return
 
-analyze_income_data(6)
+analyze_income_data()
