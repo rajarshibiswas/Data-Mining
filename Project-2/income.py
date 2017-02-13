@@ -7,7 +7,7 @@
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from sklearn.neighbors import KNeighborsClassifier
+#from sklearn.neighbors import KNeighborsClassifier
 import warnings
 
 def read_data_file(fileName):
@@ -94,6 +94,12 @@ def categorize_hours(data):
     data.loc[data['hour_per_week'] > 40, 'hour_per_week'] = 3
 
 
+def impute_missing_values_test_data(data):
+    data.loc[data['workclass'] == ' ?', 'workclass'] = data['workclass'].mode()[0]
+    data.loc[data['occupation'] == ' ?', 'occupation'] = data['occupation'].mode()[0]
+    return data
+
+
 # data = Data that used to classify unseen records.
 # test_data = Data that needs to be classified.
 # n_neighbors = number of neighbors to consider.
@@ -106,15 +112,15 @@ def KNN_from_scratch(data, test_data, n_neighbors):
     output_frame = pd.DataFrame(columns=colNames)
 
     for i in range(test_data_row):
-        neighbors = euclidean_distance(data, test_data.iloc[i], n_neighbors)
+        neighbors = minkowski_distance(data, test_data.iloc[i], n_neighbors, 5)
         result_class = []
         result_distance = []
         for j in range(len(neighbors)):
             result_class.append(data.iloc[neighbors[j][1]]['class'])
             result_distance.append(neighbors[j][0])
 
-        #result = get_predicted_class_weigh(result_class)
-        result = get_predicted_class_weigh(result_class, result_distance)
+        result = get_predicted_class_majority_vote(result_class)
+       # result = get_predicted_class_weigh(result_class, result_distance)
 
         predicted_class = result[0]
         output_frame.loc[i] = [i+1, test_data.iloc[i]["class"], predicted_class, result[1]]
@@ -129,7 +135,7 @@ def KNN_from_scratch(data, test_data, n_neighbors):
     print "The error rate %f percent" %error_rate
 
         #print result_class
-
+"""
 def KNN_using_scikit(data, test_data, n_neighbors):
     print "KNN_using_scikit"
     # Create the target data
@@ -172,7 +178,7 @@ def KNN_using_scikit(data, test_data, n_neighbors):
     error_rate = ((miss_prediction * 100) / (right_prediction + miss_prediction))
     print "The error rate %f percent" %error_rate
 
-
+"""
 
 
 # Result class - The class of all K nearest neighbors
@@ -253,6 +259,22 @@ def euclidean_distance(data, test_row, n_neighbors):
     return result[0:n_neighbors]
 
 
+def minkowski_distance(data, test_row, n_neighbors, r):
+    num_data_frame_row = data.shape[0]
+    # The result array
+    minkowski_dis = []
+
+    x = test_row.values[0:11]
+
+    for j in range(num_data_frame_row):
+        y  = data.iloc[j].values[0:11]
+        minkowski_dis.append((np.power(np.sum(np.power(np.absolute(x - y), r)), (1.0/r)), j))
+
+    result = (sorted(minkowski_dis, key = lambda x: x[0]))
+
+    return (result[0:n_neighbors])
+
+
 
 
 def prepare_data(data):
@@ -289,9 +311,13 @@ def analyze_income_data():
     data = read_data_file(filename)
     test_data_filename = 'income_te.csv'
     test_data = read_data_file(test_data_filename)
+    #count = data.shape[0] / 20
+    #data = data.sample(count)
+    #print data.shape[0]
     data = prepare_data(data)
+    test_data = impute_missing_values_test_data(test_data)
     test_data = prepare_data(test_data)
-    KNN_from_scratch(data, test_data, n_neighbors = 40)
+    KNN_from_scratch(data, test_data, n_neighbors=35)
     #KNN_using_scikit(data, test_data, n_neighbors = 4)
     #euclidean_distance(data, k+1)
     #cosine_similarity(data, k+1)
