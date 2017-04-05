@@ -1,34 +1,37 @@
-import os as os
+# Project 5
+# File  : K_Means_Easy.py
+# Author: Rajarshi Biswas
+#       : Sayam Ganguly
 import pandas as pd
 import numpy as np
-import copy as copy
 import matplotlib.pyplot as plt
-from scipy.spatial import ConvexHull
 
 
-def read_data():
+def analyze_easy_data(k=2):
     # Take the dataset as input
     filename = "TwoDimEasy.csv"
     try:
         # read the file
         data = pd.read_csv(filename)
         X, Y = separate_data(data)
-        k = data['cluster'].unique().shape[0]
-        #k = 5
         X = normalize_data(X)
         centroids = np.random.random((k, X.shape[1]))
         clusters, centroids = run_k_means(X, centroids, k)
         sse, true_ssb, pred_ssb = calculate_sse_ssb(X, Y, clusters, 
                                                     centroids, k)
+        """
         print ("True SSB =", true_ssb)
         print ("Predicted SSB =", pred_ssb)
         print (sse)
+        print ("Centroids")
+        print (centroids)
         print ("Predicted ")
         print ("True Total = ", true_ssb + sse['True SSE'].sum())
         print ("Pred Total = ", pred_ssb + sse['Predicted SSE'].sum())
         print (clusters.value_counts())
+        """
         d = plot(X, Y, clusters, k)
-        print (pd.crosstab(d["True"],d["Predicted"]))
+        #print (pd.crosstab(d["True"],d["Predicted"]))
         output_frame = pd.DataFrame(columns=["ID","Cluster"])
         output_frame["ID"] = d["ID"]
         output_frame["Cluster"] = d["Predicted"]
@@ -91,7 +94,7 @@ def move_centroids(X, clusters, cen, k):
 
 
 def calculate_sse_ssb(X, Y, clusters, centroids, k):
-    sse = pd.DataFrame(np.zeros((k, 3)), columns=[['Cluster', 'True SSE', 'Predicted SSE']])
+    sse = pd.DataFrame(np.zeros((k+1, 3)), columns=[['Cluster', 'True SSE', 'Predicted SSE']])
     true_cen = move_centroids(X, Y, np.zeros((k, X.shape[1])), k)
     true_cen_mean = true_cen.mean()
     pred_cen_mean = centroids.mean()
@@ -105,6 +108,9 @@ def calculate_sse_ssb(X, Y, clusters, centroids, k):
         ind = list(np.where(Y == i + 1)[0])
         sse.loc[i, "True SSE"] = get_sse(true_cen[i], X[X.index.isin(ind)])
         true_ssb += np.sum(len(ind)*(true_cen_mean - true_cen[i]) ** 2)
+    sse.loc[k,"Cluster"] = "Total"
+    sse.loc[k,"Predicted SSE"] = sse["Predicted SSE"].sum()
+    sse.loc[k,"True SSE"] = sse["True SSE"].sum()
     return sse, true_ssb, pred_ssb
 
 
@@ -147,4 +153,4 @@ def plot(X, Y, clusters, k):
 
 
 
-read_data()
+analyze_easy_data()
