@@ -1,13 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 19 12:10:04 2017
-
-@author: Sayam Ganguly
-"""
+# Final Project
+#
+# Author :  Rajarshi Biswas
+#           Sayam Ganguly
 
 import _pickle as pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.svm import LinearSVC
 import sys
 from sklearn import metrics
 from sklearn.metrics import classification_report
@@ -17,6 +18,7 @@ def data_label_split(data):
     Y = data['CATEGORY']
     return X,Y
 
+stdout = sys.stdout
 training_set = pickle.load(open("training_set.p","rb"))
 testing_set = pickle.load(open("testing_set.p","rb"))
 
@@ -33,21 +35,58 @@ vectorizer = CountVectorizer(analyzer = "word",
 vectorized_train = vectorizer.fit_transform(train_x)
 vectorized_test = vectorizer.transform(test_x)
 
-classifier = MultinomialNB().fit(vectorized_train, train_y)
-prediction = classifier.predict(vectorized_test)
+pickle.dump(vectorizer,open("BOW_MNB_Model.pk","wb"))
 
-model_name = 'Multinomial Naive Bayes'
+classifier_set = [(MultinomialNB(),'Multinomial Naive Bayes'),
+                  (LogisticRegression(),'Logistic Regression'),
+                  (LinearSVC(),'Linear SVM'),
+                  (RandomForestClassifier(),'Random Forrest'),
+                  (AdaBoostClassifier(),'AdaBoost')]
+
 class_names = ['Business', 'Technology', 'Entertainment', 'Medicine']
 
+pred_results = {}
+i=0                  
+for elem in classifier_set:
+    model = elem[0]
+    model_name = elem[1]
+    print("Running",model_name)
+    classifier = model.fit(vectorized_train, train_y)
+    prediction = classifier.predict(vectorized_test)
+    
+    precision = metrics.precision_score(test_y, prediction,average=None)
+    recall = metrics.recall_score(test_y, prediction,average=None)
+    f1 = metrics.f1_score(test_y, prediction,average=None)
+    accuracy = metrics.accuracy_score(test_y, prediction)
+    confusion_matrix = metrics.confusion_matrix(test_y, prediction, labels=['b','t','e','m'])
+    report = classification_report(test_y, prediction, target_names=class_names)
+    
+    d = {'precision':precision,
+         'recall':recall,
+         'F1':f1,
+         'accuracy':accuracy,
+         'confusion_matrix':confusion_matrix,
+         'report':report}
+    pred_results[model_name] = d
+    if i==0:
+        pickle.dump(model,open("BOW_MNB_Model.sav","wb"))
+    print("Done......")
+    i = i+1
+    
 sys.stdout = open("bagofwords_results.txt", 'a')
     
-print ('-------'+'-'*len(model_name))
-print ('MODEL:', model_name)
-print ('-------'+'-'*len(model_name))
+for model_name,result in pred_results.items():
+    print ('-------'+'-'*len(model_name))
+    print ('MODEL:', model_name)
+    print ('-------'+'-'*len(model_name))
+    
+    print ('Precision = ' + str(result['precision']))
+    print ('Recall = ' + str(result['recall']))
+    print ('F1 = ' + str(result['F1']))
+    print ('Accuracy = ' + str(result['accuracy']))
+    print ('Confusion matrix =  \n' + str(result['confusion_matrix']))
+    print ('\nClassification Report:\n' + str(result['report']))
 
-print ('Precision = ' + str(metrics.precision_score(test_y, prediction,average=None)))
-print ('Recall = ' + str(metrics.recall_score(test_y, prediction,average=None)))
-print ('F1 = ' + str(metrics.f1_score(test_y, prediction,average=None)))
-print ('Accuracy = ' + str(metrics.accuracy_score(test_y, prediction)))
-print ('Confusion matrix =  \n' + str(metrics.confusion_matrix(test_y, prediction, labels=['b','t','e','m'])))
-print ('\nClassification Report:\n' + classification_report(test_y, prediction, target_names=class_names))
+sys.stdout.close()
+sys.stdout = stdout
+print("Completed!")

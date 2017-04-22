@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 17 21:55:29 2017
+# Final Project
+#
+# Author :  Rajarshi Biswas
+#           Sayam Ganguly
 
-@author: Sayam Ganguly
-"""
 import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -20,13 +19,16 @@ def tokenize(words):
     return word_tokenize(words)
     
     
-def stem(words):
+def stem(token_list):
     ps = PorterStemmer()
-    return ps.stem(words)
+    return [ps.stem(tok) for tok in token_list]
     
 
 def remove_stopwords(words):
     stop_words = set(stopwords.words('english'))
+    stop_words.add("new")
+    stop_words.add("say")
+    stop_words.add("may")
     words = [w for w in words if not w in stop_words]
     return words
     
@@ -49,6 +51,7 @@ def preprocess(news_data):
         text = remove_punctuations(text)
         text = remove_digits(text)
         token_list = tokenize(text)
+        token_list = stem(token_list)
         token_list = remove_stopwords(token_list)
         text = ' '.join(token_list)
         news_data.loc[index,'TITLE'] = text
@@ -93,6 +96,14 @@ all_test = all_test.append(test_b)
 all_test = all_test.append(test_t)
 all_test = all_test.append(test_e)
 all_test = all_test.append(test_m)
+
+#Recreate Full Data
+all_data = pd.DataFrame()
+all_data = all_data.append(all_train)
+all_data = all_data.append(all_test)
+
+#Save Full Data
+pickle.dump(all_data,open("all_set.p","wb"))
 
 #Save full Training Data
 pickle.dump(all_train,open("training_set.p","wb"))

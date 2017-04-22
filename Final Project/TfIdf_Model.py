@@ -4,11 +4,11 @@
 #           Sayam Ganguly
 
 import _pickle as pickle
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import AdaBoostClassifier
 import sys
 from sklearn import metrics
 from sklearn.metrics import classification_report
@@ -25,25 +25,23 @@ testing_set = pickle.load(open("testing_set.p","rb"))
 train_x,train_y = data_label_split(training_set)
 test_x,test_y = data_label_split(testing_set)
 
-vectorizer = CountVectorizer(analyzer = "word",
-                             tokenizer = None,    
-                             preprocessor = None,
-                             ngram_range = (3, 3),
-                             binary = False,
-                             strip_accents='unicode')
+vectorizer = TfidfVectorizer()
 
 vectorized_train = vectorizer.fit_transform(train_x)
 vectorized_test = vectorizer.transform(test_x)
 
+pickle.dump(vectorizer,open("TFIDF_LRG_Model.pk","wb"))
+
 classifier_set = [(MultinomialNB(),'Multinomial Naive Bayes'),
                   (LogisticRegression(),'Logistic Regression'),
                   (LinearSVC(),'Linear SVM'),
+                  (RandomForestClassifier(),'Random Forrest'),
                   (AdaBoostClassifier(),'AdaBoost')]
 
 class_names = ['Business', 'Technology', 'Entertainment', 'Medicine']
 
 pred_results = {}
-                  
+i=0                  
 for elem in classifier_set:
     model = elem[0]
     model_name = elem[1]
@@ -65,9 +63,12 @@ for elem in classifier_set:
          'confusion_matrix':confusion_matrix,
          'report':report}
     pred_results[model_name] = d
+    if i==1:
+        pickle.dump(model,open("TFIDF_LRG_Model.sav","wb"))
     print("Done......")
+    i=i+1
     
-sys.stdout = open("trigram_results.txt", 'a')
+sys.stdout = open("tfidf_results.txt", 'a')
     
 for model_name,result in pred_results.items():
     print ('-------'+'-'*len(model_name))
